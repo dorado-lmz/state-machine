@@ -9,8 +9,6 @@ module StateJS {
 	 * Behavior encapsulates multiple Action callbacks that can be invoked by a single call.
 	 * @class Behavior
 	 */
-
-
     interface StringArray {
         [index: string]: Array<Action>;
     }
@@ -67,13 +65,10 @@ module StateJS {
         push(behavior: any, sort: string): Behavior;
 
         push(behavior: any, sort?: string): Behavior {
-
-
             if (sort) {
                 if (!this.myactions[sort]) {
                     this.myactions[sort] = [];
                 }
-
 
                 Array.prototype.push.apply(this.myactions[sort], behavior instanceof Behavior ? behavior.actions : arguments);
             } else {
@@ -103,21 +98,18 @@ module StateJS {
 		 */
         invoke(message: any, instance: IInstance, history: boolean = false, callback?: any): any {
             "use strict"
-          
             var self = this;
-            var array_actions: any = [];
-            // action(message, instance, history,state));
-            // new Function("cb",action+"('"+message+"','"+instance+"',"+history+")"))
-            this.actions.forEach(action => array_actions.push(function(cb: any) { if(StateJS.debug){console.log("action", self.toString(), action.toString());} action(message, instance, history); cb(null, 1); }));
-            
-            // for(let i=0;i<array_actions.length;i++){
-            //     array_actions[i]();
-            // }
-           
+            var array_actions: any = [];//contains all actions to execute serially
+
+            this.actions.forEach(action => array_actions.push(function(cb: any) { 
+                if(StateJS.debug){
+                    console.log("action", self.toString(), action.toString());}
+                    action(message, instance, history,cb);
+            }));
+     
             var myactions = this.myactions;
             array_actions.push(function(cb: any) {
-                // async.series([function(cb){      
-                    
+                                 
                 let len = length(myactions);
                 if (len <= 0) {
                     cb(null, 1);
@@ -125,7 +117,6 @@ module StateJS {
                 }
                 var array_myactions: any = [];
                 var eventNames: Array<string> = [];
-
 
                 for (let i = 0; i < len; i++) {
                     eventNames.push("event" + Math.floor(Math.random() * 1023));
@@ -148,28 +139,21 @@ module StateJS {
                     })(j);
 
                     j++;
-                    // array_myactions.put(constructorFunction(this.myactions[pro]));
-                    // this.myactions[pro].forEach(action => array_myactions.push(constructorFunction(action)) );
-                    //  setTimeout(()=> this.myactions[pro].forEach(action => action(message, instance, history,state)),1000);
                 }
-                 
-                // },function(){
-                //     console.log(1111);
-                // }]);
             });
+            
             async.series(array_actions, function(error: any, result: any) {
-                // if(StateJS.debug){
-                    // console.log("actions_." + result);
-                    // console.log(self.toString() + '>>>>>>main');
-                    // console.log(result);
-                    
-                // }
-                if (callback) {
-                    callback(null, 1);
+                if(error){
+                    console.error("Error:%s\nThe program is exceptional terminal",error);
+                }else{
+                    if (callback) {
+                        callback(null, 1);
+                    }
                 }
-               
+                
             });
 
+            //calculate the length of object
             function length(o: any) {
                 var count = 0;
                 for (var i in o) {
@@ -177,16 +161,6 @@ module StateJS {
                 }
                 return count;
             };
-            // if(array_myactions.length ==0){1
-            //     return;
-            // }
-       
-            
-            // when.settle([array_myactions[0](),array_myactions[1](),array_myactions[2]()]).then(function(){
-            //      deferred.resolve("action4");
-            // });
-          
-            // this.actions.forEach(action => setTimeout(function(){action(message, instance, history,state)},1000));
         }
 
     }

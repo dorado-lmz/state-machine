@@ -5,7 +5,8 @@ var StateJS = require('../lib/state.com.js');
 
 
 StateJS.console = console;
-var model = StateJS.create({
+var model = StateJS.create(
+{
     states:[{name:'initial',kind:StateJS.PseudoStateKind.Initial},
         {name:'state1',regions:{
             regionA:[
@@ -54,4 +55,6 @@ var model = StateJS.create({
             ]
         }
     }
-});
+}
+
+);

@@ -5,8 +5,7 @@
 
 
 
-namespace StateJS{
-    
+namespace StateJS{  
     var statements = '';
     
     export var Queue = async.queue(function(task:any, callback:any) {
@@ -22,7 +21,7 @@ namespace StateJS{
         var model = new StateMachine("model");
 
         parseStateList(states,"model");
-        parseTransitions(events,callbacks);
+        parseTransitions(events,callbacks);https://github.com/dorado-lmz/monaco-font
         console.log(statements);
         statements+= 'var instance = new StateJS.StateMachineInstance("p3pp3r");StateJS.initialise(model, instance);';
         eval(statements);

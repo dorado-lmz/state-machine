@@ -16,7 +16,6 @@ module StateJS {
 	 */
     export function initialise(model: StateMachine, instance?: IInstance, autoInitialiseModel: boolean = true, callback?: any): void {
        
-        
         if (instance) {
             // initialise the state machine model if necessary
             if (autoInitialiseModel && model.clean === false) {
@@ -25,16 +24,15 @@ module StateJS {
 
             // log as required
             console.log("initialise " + instance);
-
-
             model.onInitialise.count = Math.random();
             // enter the state machine instance for the first time
             async.series([function(cb)
             { model.onInitialise.invoke(undefined, instance, false, cb); }
             ], function(err,res) {
                 console.log("initialise");
-               
-                callback(null, "initialise");
+                if(callback){
+                    callback(null, "initialise");
+                }
             });
 
 
@@ -131,25 +129,12 @@ module StateJS {
                 }
             }
         });
-
-        // delegate to child regions first
-        // state.regions.every(region => {
-        // 	if (evaluateState(instance.getCurrent(region), instance, message,callback)) {
-        // 		result = true;
-
-        // 		return isActive(state, instance); // NOTE: this just controls the every loop; also isActive is a litte costly so using sparingly
-        // 	}
-
-        // 	return true; // NOTE: this just controls the every loop
-        // });
-
-        // if a transition occured in a child region, check for completions
     }
 
     // traverses a transition
     function traverse(transition: Transition, instance: IInstance, callback: any, message?: any) {
 
-        console.log("traverse--begin" + transition.target.name);
+        // console.log("traverse--begin" + transition.target.name);
 
         var onTraverse = new Behavior(transition.onTraverse)//, target = transition.target;
 
@@ -174,7 +159,7 @@ module StateJS {
             },
             function(cb) {
 
-                console.log("traverse++" + transition.target.name);
+                // console.log("traverse++" + transition.target.name);
 
                 if (transition.target != null) {
                     if (transition.target instanceof PseudoState) {
@@ -207,8 +192,12 @@ module StateJS {
                     }
                 }
             }
-        ], function() {
-                callback(null, "traverse++" + transition.target.name);
+        ], function(err,res) {
+                if(err){
+                      console.error("Error:%s\nThe program is exceptional terminal",err);
+                }else{
+                    callback(null, "traverse++" + transition.target.name);
+                }
         });
 
     };
@@ -346,7 +335,7 @@ module StateJS {
 
 
             // leave the curent active child state when exiting the region
-            this.behavior(region).leave.push((message, instance) => this.behavior(instance.getCurrent(region)).leave.invoke(message, instance));
+            this.behavior(region).leave.push((message, instance, history, cb) => {this.behavior(instance.getCurrent(region)).leave.invoke(message, instance);cb(null,1)});
 
             // enter the appropriate child vertex when entering the region
             if (deepHistoryAbove || !regionInitial || regionInitial.isHistory()) { // NOTE: history needs to be determined at runtime
@@ -383,14 +372,15 @@ module StateJS {
             this.visitVertex(state, deepHistoryAbove);
 
             // add the user defined behavior when entering and exiting states
-            this.behavior(state).leave.push((message, instance) => state.exitBehavior.invoke(undefined, instance, undefined));
-            this.behavior(state).beginEnter.push(function(message, instance) { state.entryBehavior.count = Math.random(); state.entryBehavior.invoke(undefined, instance, undefined); });
+            this.behavior(state).leave.push(function(message, instance, history, cb){state.exitBehavior.invoke(undefined, instance, undefined,cb);});
+            this.behavior(state).beginEnter.push(function(message, instance, history, cb) { state.entryBehavior.count = Math.random(); state.entryBehavior.invoke(undefined, instance, undefined,cb); });
 
             // update the parent regions current state
-            this.behavior(state).beginEnter.push((message, instance) => {
+            this.behavior(state).beginEnter.push((message, instance, history, cb) => {
                 if (state.region) {
                     instance.setCurrent(state.region, state);
                 }
+                cb(null,1)
             });
         }
 

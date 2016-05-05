@@ -30,12 +30,14 @@ module StateJS {
 		 */
 		public qualifiedName: string;
 
+
 		/**
 		 * Creates a new instance of the element class.
 		 * @param {string} name The name of the element.
 		 */
 		public constructor(name: string, parent: Element) {
 			this.name = name;
+
 			this.qualifiedName = parent ? (parent.qualifiedName + Element.namespaceSeparator + name) : name;
 		}
 
